@@ -17,29 +17,64 @@
 - 数据类型转换：确保特征类型合适
 
 ### 2. 特征工程
-#### 2.1 基础特征转换
-- 标准化：使用`StandardScaler`将特征转换到相同尺度
-- 特征平方：捕捉非线性关系
-```python
-for col in numeric_cols:
-    df[f'{col}_squared'] = df[col] ** 2
-```
+#### 2.1 原始特征（11个）
+1. day（日期）
+2. pressure（气压）
+3. maxtemp（最高温度）
+4. temparature（温度）
+5. mintemp（最低温度）
+6. dewpoint（露点）
+7. humidity（湿度）
+8. cloud（云量）
+9. sunshine（日照）
+10. winddirect（风向）
+11. windspeed（风速）
 
-#### 2.2 特征交互
-- 特征乘积：捕捉特征间的相互作用
-```python
-for i in range(len(numeric_cols)):
-    for j in range(i+1, len(numeric_cols)):
-        col1, col2 = numeric_cols[i], numeric_cols[j]
-        df[f'{col1}_times_{col2}'] = df[col1] * df[col2]
-```
+#### 2.2 特征转换与创建
+1. **标准化特征**
+   - 使用`StandardScaler`将所有数值特征标准化
+   - 目的：使所有特征在相同尺度上，提高模型性能
+
+2. **平方特征**（11个）
+   ```python
+   for col in numeric_cols:
+       df[f'{col}_squared'] = df[col] ** 2
+   ```
+   例如：
+   - pressure_squared：捕捉气压的非线性影响
+   - humidity_squared：捕捉湿度的非线性影响
+   - temperature_squared：捕捉温度的非线性影响
+
+3. **特征交互**（55个）
+   ```python
+   for i in range(len(numeric_cols)):
+       for j in range(i+1, len(numeric_cols)):
+           col1, col2 = numeric_cols[i], numeric_cols[j]
+           df[f'{col1}_times_{col2}'] = df[col1] * df[col2]
+   ```
+   例如：
+   - pressure_times_humidity：气压和湿度的交互作用
+   - temperature_times_humidity：温度和湿度的交互作用
+   - wind_times_humidity：风速和湿度的交互作用
 
 #### 2.3 特征选择
-- 使用`SelectKBest`和F检验选择最重要的特征
-- 固定选择20个最重要的特征，避免维度灾难
-```python
-selector = SelectKBest(score_func=f_classif, k=20)
-```
+- 使用`SelectKBest`和F检验从所有特征中选择最重要的20个特征
+- 选择过程：
+  1. 计算每个特征与目标变量（rainfall）的F值
+  2. 选择F值最高的20个特征
+  ```python
+  selector = SelectKBest(score_func=f_classif, k=20)
+  ```
+- 选择20个特征的原因：
+  1. 平衡模型复杂度和性能
+  2. 避免维度灾难
+  3. 减少过拟合风险
+
+#### 2.4 特征重要性分析
+在模型训练后，我们可以查看哪些特征被选中，以及它们的重要性排序。通常包括：
+- 原始特征中的关键气象指标（如湿度、气压）
+- 重要的特征交互项（如温度与湿度的交互）
+- 显著的非线性特征（如重要特征的平方项）
 
 ### 3. 模型构建
 #### 3.1 基础模型
